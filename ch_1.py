@@ -4,6 +4,7 @@ import numpy as np
 text = 'ACAACTATGCATACTATCGGGAACTATCCT'
 pattern = 'ACTAT'
 # %%
+# ch1_A
 def pattern_count(text, pattern):
     count = 0
     k = len(pattern)
@@ -44,10 +45,7 @@ def frequent_words_dict(text, k):
 # %%
 frequent_words_dict(text,3)
 # %% ----------------------------------------
-def patt_to_num(pattern):
-    pass
-# %% ----------------------------------------
-actg = list('ACTG')
+actg = list('ACGT')
 actg
 # %%
 def two_mer_pattern():
@@ -71,7 +69,7 @@ arr_3d = np.arange(24).reshape((3,4,2))
 arr_2d = np.arange(8).reshape((4,2))
 arr_3d + arr_2d
 # %%
-base = np.array(list('ACTG'))
+base = np.array(list('ACGT'))
 base, base.shape
 # %% ----------------------------------------
 def kmer_base(k):
@@ -113,13 +111,38 @@ def prefix(pattern):
     prefix = pattern[:-1]
     return prefix
 # %% ----------------------------------------
-def symbol2num(symbol):
-    sb_dict = dict(A=0, C=1, G=2, T=3)
-    return sb_dict[symbol]
-# %%
+symbol_dict = dict(A=0, C=1, G=2, T=3)
+index_dict = {v:k for k,v in symbol_dict.items()}
+index_dict
+# %%   # 1L
 def pattern2num_recur(pattern):
     if pattern == '':
         return 0
     symbol = last_symbol(pattern)
-    prefix = prefix(pattern)
-    return pattern2num_recur(prefix) + symbol2num(symbol)
+    _prefix = prefix(pattern)
+    return 4*pattern2num_recur(_prefix) + symbol_dict[symbol]
+# %%
+pattern2num_recur('TTT')
+# %% ----------------------------------------
+def num2symbol(index):
+    index_dict = {v:k for k,v in symbol_dict.items()}
+    symbol = index_dict[index]
+    return symbol
+# %%
+def num2pattern_recur(index, k):
+    if k == 1:
+        symbol = num2symbol(index)
+        return symbol
+    prefix_index = index // 4
+    remainder = index % 4
+    print(f"k = {k} : prefix_index={prefix_index},remainder={remainder}")
+    symbol = num2symbol(remainder)
+    prefix_pattern = num2pattern_recur(prefix_index, k-1)
+    pattern = prefix_pattern + symbol
+    return pattern
+# %%
+num2pattern_recur(5437,7)
+# %%
+num2pattern_recur(5437,8)
+# %%
+num2pattern(9904, 7)
