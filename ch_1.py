@@ -148,7 +148,8 @@ def finding_frequent_words_by_sorting(text,k):
         pattern = text[i:i+k]
         idx_arr[i] = pattern2num_recur(pattern)
         sorted_idx_arr = np.sort(idx_arr)
-        for i in range(N_kmer):
-            if sorted_idx_arr[i] == sorted_idx_arr[i-1]:
-                count_arr[i] = count_arr[i-1] + 1
-        
+    for i in range(N_kmer):
+        if sorted_idx_arr[i] == sorted_idx_arr[i-1]:
+            count_arr[i] = count_arr[i-1] + 1
+    max_count = np.max(count_arr)
+    
