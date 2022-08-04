@@ -1,25 +1,19 @@
 # %% ----------------------------------------
 import numpy as np
-# %%
-text = 'ACAACTATGCATACTATCGGGAACTATCCT'
-pattern = 'ACTAT'
-# %%
-# ch1_A
+# %%  Q) ch1_A
 def pattern_count(text, pattern):
     count = 0
     k = len(pattern)
     seq_len = len(text)
-    for i in range(seq_len - k):
+    for i in range(seq_len-k+1):
         if text[i:i+k] == pattern:
             count += 1
     return count
-# %% ----------------------------------------
-pattern_count(text, pattern)
 # %%
 def frequent_words(text, k):
     freq_pattern_set = set()
     count_list = list()
-    for i in range(len(text)-k):
+    for i in range(len(text)-k+1):
         pattern = text[i:i+k]
         count_num = pattern_count(text, pattern)
         count_list.append(count_num)
@@ -29,21 +23,15 @@ def frequent_words(text, k):
             pattern = text[i:i+k]
             freq_pattern_set.add(pattern)
     return freq_pattern_set
-# %% ----------------------------------------
-%timeit frequent_words(text, 3)
-# %%
-frequent_words(text, 4)
 # %%
 def frequent_words_dict(text, k):
     count_dict = dict()
-    for i in range(len(text)-k):
+    for i in range(len(text)-k+1):
         pattern = text[i:i+k]
         count_dict[pattern] = count_dict.get(pattern, 0) + 1
         # count_dict[pattern] = count_dict.get(pattern, []) + i
     return sorted(count_dict.items(), key = lambda x:x[1], reverse=True)
     # return sorted(count_dict.items(),key=lambda x:len(x[1]),reverse=True)
-# %%
-frequent_words_dict(text,3)
 # %% ----------------------------------------
 actg = list('ACGT')
 actg
@@ -56,19 +44,6 @@ def two_mer_pattern():
             two_mer_list.append(two_mer)
     return two_mer_list
 # %%
-two_mer_list = two_mer_pattern()
-# %%
-two_mer_list
-# %%
-np_actg = np.array(actg)
-# %%
-np.char.add(np_actg.reshape((4,1)),np_actg.reshape((1,4)))
-# %%
-# broadcasting
-arr_3d = np.arange(24).reshape((3,4,2))
-arr_2d = np.arange(8).reshape((4,2))
-arr_3d + arr_2d
-# %%
 base = np.array(list('ACGT'))
 base, base.shape
 # %% ----------------------------------------
@@ -80,28 +55,16 @@ def kmer_base(k):
     # return dict(zip(result.flatten(),np.arange(4**k)))
     return result.flatten()
 # %%
-kmer_base(3)
-# %%
 def pattern2num(pattern):
     k = len(pattern)
     kmer_tot_arr = kmer_base(k)
     idx = np.where(kmer_tot_arr == pattern)
     return idx
-# %% ----------------------------------------
-idx = pattern2num('ATGCAA')
-# %%
-idx
 # %%
 def num2pattern(index, k):
     kmer_tot_list = kmer_base(k)
     pattern = kmer_tot_list[index]
     return pattern
-# %%
-num2pattern(5437, 7)
-# %%
-num2pattern(5437, 8)
-# %%
-num2pattern(720, 6)
 # %% ----------------------------------------
 def last_symbol(pattern):
     last_sb = pattern[-1]
@@ -113,7 +76,6 @@ def prefix(pattern):
 # %% ----------------------------------------
 symbol_dict = dict(A=0, C=1, G=2, T=3)
 index_dict = {v:k for k,v in symbol_dict.items()}
-index_dict
 # %%   # 1L
 def pattern2num_recur(pattern):
     if pattern == '':
@@ -121,8 +83,6 @@ def pattern2num_recur(pattern):
     symbol = last_symbol(pattern)
     _prefix = prefix(pattern)
     return 4*pattern2num_recur(_prefix) + symbol_dict[symbol]
-# %%
-pattern2num_recur('TTT')
 # %% ----------------------------------------
 def num2symbol(index):
     index_dict = {v:k for k,v in symbol_dict.items()}
@@ -135,14 +95,60 @@ def num2pattern_recur(index, k):
         return symbol
     prefix_index = index // 4
     remainder = index % 4
-    print(f"k = {k} : prefix_index={prefix_index},remainder={remainder}")
+    # print(f"k = {k} : prefix_index={prefix_index},remainder={remainder}")
     symbol = num2symbol(remainder)
     prefix_pattern = num2pattern_recur(prefix_index, k-1)
     pattern = prefix_pattern + symbol
     return pattern
+# %%  Q) 1K  
+def computing_frequencies(text, k):
+    frequency_arr = np.zeros(4**k)
+    for i in range(len(text)-k+1):
+        pattern = text[i:i+k]
+        idx = pattern2num_recur(pattern)
+        # print(f"[idx] pattern : [{idx}] {pattern}")
+        frequency_arr[idx] += 1
+    return frequency_arr
 # %%
-num2pattern_recur(5437,7)
+text = 'AAGCAAAGGTGGG'*100
+k = 11
+# %% ----------------------------------------
+def faster_frequent_words(text, k):
+    frequent_patterns = list()
+    frequency_arr = computing_frequencies(text,k)
+    max_count = np.max(frequency_arr)
+    for i in range(4**k):
+        if frequency_arr[i] == max_count:
+            pattern = num2pattern_recur(i, k)
+            frequent_patterns.append(pattern)
+    return frequent_patterns
 # %%
-num2pattern_recur(5437,8)
+def faster_frequent_words_np(text, k):
+    frequent_patterns = list()
+    frequency_arr = computing_frequencies(text,k)
+    max_count = np.max(frequency_arr)
+    np_idx_list = np.where(frequency_arr == max_count)[0]
+    for i in np_idx_list:
+        pattern = num2pattern_recur(i,k)
+        frequent_patterns.append(pattern)
+    return frequent_patterns
+# %% ----------------------------------------
+faster_frequent_words(text,k)
 # %%
-num2pattern(9904, 7)
+%timeit faster_frequent_words(text,k)
+# %%
+%timeit faster_frequent_words_np(text,k)
+# %%
+def finding_frequent_words_by_sorting(text,k):
+    frequent_patterns = list()
+    N_kmer = len(text)-k+1
+    idx_arr = np.empty(shape=N_kmer)
+    count_arr = np.ones(shape=N_kmer)
+    for i in range(N_kmer):
+        pattern = text[i:i+k]
+        idx_arr[i] = pattern2num_recur(pattern)
+        sorted_idx_arr = np.sort(idx_arr)
+        for i in range(N_kmer):
+            if sorted_idx_arr[i] == sorted_idx_arr[i-1]:
+                count_arr[i] = count_arr[i-1] + 1
+        
