@@ -1,5 +1,6 @@
 # %% ----------------------------------------
 import numpy as np
+from collections import Counter
 # %%  Q) ch1_A
 def pattern_count(text, pattern):
     count = 0
@@ -109,9 +110,6 @@ def computing_frequencies(text, k):
         # print(f"[idx] pattern : [{idx}] {pattern}")
         frequency_arr[idx] += 1
     return frequency_arr
-# %%
-text = 'AAGCAAAGGTGGG'*100
-k = 11
 # %% ----------------------------------------
 def faster_frequent_words(text, k):
     frequent_patterns = list()
@@ -132,24 +130,109 @@ def faster_frequent_words_np(text, k):
         pattern = num2pattern_recur(i,k)
         frequent_patterns.append(pattern)
     return frequent_patterns
-# %% ----------------------------------------
-faster_frequent_words(text,k)
-# %%
-%timeit faster_frequent_words(text,k)
-# %%
-%timeit faster_frequent_words_np(text,k)
+# %timeit faster_frequent_words(text,k)
+# %timeit faster_frequent_words_np(text,k)
 # %%
 def finding_frequent_words_by_sorting(text,k):
-    frequent_patterns = list()
+    freq_pattern_list = list()
     N_kmer = len(text)-k+1
     idx_arr = np.empty(shape=N_kmer)
     count_arr = np.ones(shape=N_kmer)
+
     for i in range(N_kmer):
         pattern = text[i:i+k]
         idx_arr[i] = pattern2num_recur(pattern)
-        sorted_idx_arr = np.sort(idx_arr)
+
+    sorted_idx_arr = np.sort(idx_arr)
+
     for i in range(N_kmer):
         if sorted_idx_arr[i] == sorted_idx_arr[i-1]:
             count_arr[i] = count_arr[i-1] + 1
-    max_count = np.max(count_arr)
-    
+
+    max_count = np.max(count_arr) # for
+
+    for i in range(N_kmer): # for
+        if count_arr[i] == max_count:
+            freq_pattern = num2pattern_recur(sorted_idx_arr[i], k)
+            freq_pattern_list.append(freq_pattern)
+            
+    return freq_pattern_list
+# %% ----------------------------------------
+text = 'AAGCAAAGGTGGG'
+k = 2
+# %%
+finding_frequent_words_by_sorting(text, k)
+# %% ----------------------------------------
+def finding_frequent_words_by_sorting_nr(text,k):
+    freq_pattern_list = list()
+    N_kmer = len(text)-k+1
+    idx_arr = np.empty(shape=N_kmer)
+    count_arr = np.ones(shape=N_kmer)
+
+    for i in range(N_kmer):
+        pattern = text[i:i+k]
+        idx_arr[i] = pattern2num_recur(pattern)
+
+    sorted_idx_arr = np.sort(idx_arr)
+    max_count = count_arr[0]
+    for i in range(1, N_kmer):
+        if sorted_idx_arr[i] == sorted_idx_arr[i-1]:
+            count_arr[i] = count_arr[i-1] + 1
+        if max_count < count_arr[i]:
+            max_count = count_arr[i]
+    freq_idx_list = np.where(count_arr == max_count)[0]
+    freq_sorted_idx_list = sorted_idx_arr[freq_idx_list]
+    for i in freq_sorted_idx_list:
+        pattern = num2pattern_recur(i,k)
+        freq_pattern_list.append(pattern)
+
+    return freq_pattern_list
+# %%
+%timeit finding_frequent_words_by_sorting(text, k)
+# %% ----------------------------------------
+%timeit finding_frequent_words_by_sorting_nr(text, k)
+# %%
+def finding_frequent_words_by_sorting_ph(text,k):
+    freq_pattern_list = list()
+    N_kmer = len(text)-k+1
+    idx_arr = np.empty(shape=N_kmer)
+    count_arr = np.ones(shape=N_kmer)
+
+    for i in range(N_kmer):
+        pattern = text[i:i+k]
+        idx_arr[i] = pattern2num_recur(pattern)
+
+    sorted_idx_arr = np.sort(idx_arr)
+    max_count = count_arr[0]  # 1
+    max_freq_list = list()
+    for i in range(1, N_kmer):
+        print(f"index = {i}")
+        if sorted_idx_arr[i] == sorted_idx_arr[i-1]:
+            count_arr[i] = count_arr[i-1] + 1
+            print("add count")
+        elif max_count == count_arr[i-1]:
+            max_freq_list.append(sorted_idx_arr[i-1])
+            print("append max_freq_list")
+        elif max_count < count_arr[i-1]:
+            max_count = count_arr[i-1]
+            max_freq_list = [sorted_idx_arr[i-1]]
+            print("update new max_count")
+            print("remove old max_freq_list")
+            print("make new max_freq_list")
+        print(f"count_arr = {count_arr}")
+        print(f"max_count = {max_count}")
+        print(f"max_freq_list = {max_freq_list}")
+
+    for i in max_freq_list:
+            pattern = num2pattern_recur(i,k)
+            freq_pattern_list.append(pattern)
+    return freq_pattern_list
+# %%
+%timeit finding_frequent_words_by_sorting_ph(text, k)
+# %%
+finding_frequent_words_by_sorting_ph(text, k)
+# %%
+finding_frequent_words_by_sorting_nr(text, k)
+# %% ----------------------------------------
+4**9
+# %%
