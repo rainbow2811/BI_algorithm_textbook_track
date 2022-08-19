@@ -241,12 +241,23 @@ comp_dict
 # %%
 input_seq = 'AGTCGCATAGT'
 # %%
-def comp_seq(input_seq):
+def comp_seq(input_seq, reverse = True, D):
     comp_dict = dict(A='T', C='G', T='A', G='C')
     input_seq_list = list(input_seq)
-    comp_seq = list(map(lambda x: comp_dict[x], input_seq_list))
-    comp_seq_rev = ''.join(reversed(comp_seq))
-    return comp_seq_rev
+    comp_seq = list(map(comp_dict.get, input_seq_list))
+    # comp_seq = list(map(lambda x: comp_dict[x], input_seq_list))
+    if reverse:
+        comp_seq = ''.join(reversed(comp_seq))
+    else:
+        comp_seq = ''.join(comp_seq)
+    return comp_seq
 # %%
-comp_seq(input_seq)
+comp_seq(input_seq, reverse=False), comp_seq(input_seq, reverse=True)
+# %%
+comp_dict = dict(A='T', C='G', T='A', G='C')
+# %%
+count_dict = dict()
+for n, k in enumerate(input_seq):
+    count_dict[k] = count_dict.get(k,list())+[n]
+count_dict
 # %%
