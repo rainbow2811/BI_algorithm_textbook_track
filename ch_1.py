@@ -235,4 +235,18 @@ finding_frequent_words_by_sorting_ph(text, k)
 finding_frequent_words_by_sorting_nr(text, k)
 # %% ----------------------------------------
 4**9
+# %% 1C
+comp_dict = dict(A='T', C='G', T='A', G='C')
+comp_dict
+# %%
+input_seq = 'AGTCGCATAGT'
+# %%
+def comp_seq(input_seq):
+    comp_dict = dict(A='T', C='G', T='A', G='C')
+    input_seq_list = list(input_seq)
+    comp_seq = list(map(lambda x: comp_dict[x], input_seq_list))
+    comp_seq_rev = ''.join(reversed(comp_seq))
+    return comp_seq_rev
+# %%
+comp_seq(input_seq)
 # %%
