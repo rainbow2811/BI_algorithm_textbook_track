@@ -48,11 +48,21 @@ def two_mer_pattern():
 base = np.array(list('ACGT'))
 base, base.shape
 # %% ----------------------------------------
+[2]*3
+# %% ----------------------------------------
+
+def make_shape(k,i):
+    # ex) (k = 4, i = 2) --> [1,1,4,1]
+    # return [1]*i+[4]+[1]*(k-i-1)
+    shape = np.ones(k)
+    shape[i] = 4
+    return shape
+
 def kmer_base(k):
-    shape_list = [[1]*i+[4]+[1]*(k-i-1) for i in range(k)]
+    shape_list = [make_shape(k,i) for i in range(k)]
     result = base.reshape(shape_list[0])
     for i in range(1,k):
-        result = np.char.add(result, base.reshape(shape_list[i]))
+        result = np.char.add(result, base.reshape(shape_list[i]))  # broadcasting
     # return dict(zip(result.flatten(),np.arange(4**k)))
     return result.flatten()
 # %%
@@ -77,7 +87,7 @@ def prefix(pattern):
 # %% ----------------------------------------
 symbol_dict = dict(A=0, C=1, G=2, T=3)
 index_dict = {v:k for k,v in symbol_dict.items()}
-# %%   # 1L
+# %%   Q) 1L
 def pattern2num_recur(pattern):
     if pattern == '':
         return 0
@@ -330,4 +340,46 @@ class CompSeq:
 _get_comp_seq = CompSeq()
 # %%
 _get_comp_seq(input_seq,True,False)
-# %%
+# %%     Q) 1E
+def clump_finding(genome_seq, k, L, t):
+    freq_patterns = list()
+    clump_arr = np.zeros(shape=(4**k))
+    for i in range(len(genome_seq)-L+1):
+        window = genome_seq[i:i+L]
+        freq_arr = computing_frequencies(window, k)
+        idx_clump = np.where(freq_arr >= t)[0]
+        if len(idx_clump) != 0:
+            clump_arr[idx_clump] = 1
+    idx = np.where(clump_arr == 1)[0]
+    for i in idx:
+        pattern = num2pattern_recur(i, k)
+        freq_patterns.append(pattern)
+    return freq_patterns
+# %% ----------------------------------------
+genome_seq = 'CGGACTCGACAGATGTGAAGAAATGTGAAGACTGAGTGAAGAGAAGAGGAAACACGACACGACATTGCGACATAATGTACGAATGTAATGTGCCTATGGC'
+
+clump_finding(genome_seq, 5, 75, 4)
+# %%   Q) 1E (ver.코드 정리)
+
+def find_clump_idxs(genome_seq, k, L, t):
+    clump_arr = np.zeros(shape=(4**k))
+    for i in range(len(genome_seq)-L+1):    
+        window = genome_seq[i:i+L]
+        freq_arr = computing_frequencies(window, k)
+        idx_clump = np.where(freq_arr >= t)[0]
+        if len(idx_clump) != 0:
+            clump_arr[idx_clump] = 1
+    idx_arr = np.where(clump_arr == 1)[0]
+    return idx_arr
+
+def num_arr2pattern_list(clump_idx_arr, k):
+    freq_patterns = list()
+    for i in clump_idx_arr:
+        pattern = num2pattern_recur(i, k)
+        freq_patterns.append(pattern)
+    return freq_patterns
+
+def find_clump_patterns(genome_seq, k, L, t):
+    clump_idx_arr = find_clump_idxs(genome_seq, k, L, t)
+    freq_patterns = num_arr2pattern_list(clump_idx_arr, k)
+    return freq_patterns 
