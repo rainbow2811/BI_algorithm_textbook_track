@@ -224,8 +224,8 @@ def finding_frequent_words_by_sorting_ph(text,k):
         print(f"max_freq_list = {max_freq_list}")
 
     for i in max_freq_list:
-            pattern = num2pattern_recur(i,k)
-            freq_pattern_list.append(pattern)
+        pattern = num2pattern_recur(i,k)
+        freq_pattern_list.append(pattern)
     return freq_pattern_list
 # %%
 %timeit finding_frequent_words_by_sorting_ph(text, k)
@@ -241,18 +241,45 @@ comp_dict
 # %%
 input_seq = 'AGTCGCATAGT'
 # %%
-def comp_seq(input_seq, reverse = True, D):
-    comp_dict = dict(A='T', C='G', T='A', G='C')
+import typing as tp    
+class Seq(tp.NamedTuple):
+    comp_seq:str
+    ori_seq:str
+    RNA_seq:bool
+
+    # def __init__(self, comp_seq, ori_seq, RNA_seq):
+    #     self.comp_seq = comp_seq
+    #     self.ori_seq = ori_seq
+    #     self.RNA_seq = RNA_seq
+    
+    # def __str__(self):
+    #     return f"comp_seq = {self.comp_seq}, ori_seq = {self.ori_seq}, RNA_seq = {self.RNA_seq}"
+
+    # def __repr__(self):
+    #     return f"comp_seq = {self.comp_seq}, ori_seq = {self.ori_seq}, RNA_seq = {self.RNA_seq}"
+# %% ----------------------------------------
+def get_comp_seq(input_seq, reverse = True, RNA_seq = False):
+    if RNA_seq:
+        comp_dict = dict(A='U', C='G', T='A', G='C')
+    else:
+        comp_dict = dict(A='T', C='G', T='A', G='C')
+
     input_seq_list = list(input_seq)
     comp_seq = list(map(comp_dict.get, input_seq_list))
     # comp_seq = list(map(lambda x: comp_dict[x], input_seq_list))
+    
+    # if RNA_seq:
+    #     comp_seq = [ ('U' if nt == 'T' else nt) for nt in comp_seq ]
+
     if reverse:
         comp_seq = ''.join(reversed(comp_seq))
     else:
         comp_seq = ''.join(comp_seq)
-    return comp_seq
+
+    # return comp_seq
+    return Seq(comp_seq,input_seq,RNA_seq)
 # %%
-comp_seq(input_seq, reverse=False), comp_seq(input_seq, reverse=True)
+get_comp_seq(input_seq, reverse=False), get_comp_seq(input_seq, reverse=True)
 # %%
 comp_dict = dict(A='T', C='G', T='A', G='C')
 # %%
@@ -260,4 +287,47 @@ count_dict = dict()
 for n, k in enumerate(input_seq):
     count_dict[k] = count_dict.get(k,list())+[n]
 count_dict
+# %%
+comp_dict = dict(A='T', C='G', T='A', G='C')
+input_seq_list = list(input_seq)
+comp_seq = list(map(comp_dict.get, input_seq_list))
+# %%
+comp_seq
+# %% ----------------------------------------
+[ ('U' if nt == 'T' else nt) for nt in comp_seq ]
+# %%
+get_comp_seq(input_seq, reverse=False, RNA_seq=False)
+# %%
+get_comp_seq(input_seq, reverse=False, RNA_seq=True)
+# %%
+get_comp_seq(input_seq, reverse=True, RNA_seq=False)
+# %%
+get_comp_seq(input_seq, reverse=True, RNA_seq=True)
+# %%
+get_comp_seq(input_seq, reverse=True, RNA_seq=True)
+# %% ----------------------------------------
+class CompSeq:
+    def __init__(self):
+        self.dna_comp_dict = dict(A='U', C='G', T='A', G='C')
+        self.rna_comp_dict = dict(A='T', C='G', T='A', G='C')
+    
+    def __call__(self, input_seq, reverse = True, RNA_seq = False):
+        if RNA_seq:
+            comp_dict = self.rna_comp_dict
+        else:
+            comp_dict = self.dna_comp_dict
+        
+        input_seq_list = list(input_seq)
+        comp_seq = list(map(comp_dict.get, input_seq_list))
+
+        if reverse:
+            comp_seq = ''.join(reversed(comp_seq))
+        else:
+            comp_seq = ''.join(comp_seq)
+
+        return Seq(comp_seq,input_seq,RNA_seq)
+# %%
+_get_comp_seq = CompSeq()
+# %%
+_get_comp_seq(input_seq,True,False)
 # %%
