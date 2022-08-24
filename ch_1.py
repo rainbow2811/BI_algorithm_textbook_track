@@ -50,19 +50,18 @@ base, base.shape
 # %% ----------------------------------------
 [2]*3
 # %% ----------------------------------------
-
 def make_shape(k,i):
-    # ex) (k = 4, i = 2) --> [1,1,4,1]
-    # return [1]*i+[4]+[1]*(k-i-1)
+    # ex) (k=3, i=0) --> [4,1,1] , (k=3, i=1) --> [1,4,1] , (k=3, i=2) --> [1,1,4]
     shape = np.ones(k)
-    shape[i] = 4
+    shape[i] = 4    # base.shape = (4,)이므로 4로 정함. base = array(['A', 'C', 'G', 'T'])
     return shape
+    # return [1]*i+[4]+[1]*(k-i-1) 
 
 def kmer_base(k):
-    shape_list = [make_shape(k,i) for i in range(k)]
+    shape_list = [make_shape(k,i) for i in range(k)]  # array(['A', 'C', 'G', 'T'])를 k 숫자 만큼 shape이 다른 배열들(shape_list)을 만듬
     result = base.reshape(shape_list[0])
-    for i in range(1,k):
-        result = np.char.add(result, base.reshape(shape_list[i]))  # broadcasting
+    for i in range(1,k):   # 1부터 시작하는 이유는 이미 shape_list[0]은 result로 만들었기 때문
+        result = np.char.add(result, base.reshape(shape_list[i]))  #  하나씩 broadcasting해서 kmer 자리수 만큼 늘림(2mer -> 3mer -> 4mer ->...)
     # return dict(zip(result.flatten(),np.arange(4**k)))
     return result.flatten()
 # %%
@@ -198,9 +197,9 @@ def finding_frequent_words_by_sorting_nr(text,k):
 
     return freq_pattern_list
 # %%
-%timeit finding_frequent_words_by_sorting(text, k)
-# %% ----------------------------------------
-%timeit finding_frequent_words_by_sorting_nr(text, k)
+# %timeit finding_frequent_words_by_sorting(text, k)
+# # %% ----------------------------------------
+# %timeit finding_frequent_words_by_sorting_nr(text, k)
 # %%
 def finding_frequent_words_by_sorting_ph(text,k):
     freq_pattern_list = list()
@@ -238,13 +237,11 @@ def finding_frequent_words_by_sorting_ph(text,k):
         freq_pattern_list.append(pattern)
     return freq_pattern_list
 # %%
-%timeit finding_frequent_words_by_sorting_ph(text, k)
+# %timeit finding_frequent_words_by_sorting_ph(text, k)
 # %%
 finding_frequent_words_by_sorting_ph(text, k)
 # %%
 finding_frequent_words_by_sorting_nr(text, k)
-# %% ----------------------------------------
-4**9
 # %% 1C
 comp_dict = dict(A='T', C='G', T='A', G='C')
 comp_dict
@@ -289,32 +286,32 @@ def get_comp_seq(input_seq, reverse = True, RNA_seq = False):
     # return comp_seq
     return Seq(comp_seq,input_seq,RNA_seq)
 # %%
-get_comp_seq(input_seq, reverse=False), get_comp_seq(input_seq, reverse=True)
-# %%
-comp_dict = dict(A='T', C='G', T='A', G='C')
-# %%
-count_dict = dict()
-for n, k in enumerate(input_seq):
-    count_dict[k] = count_dict.get(k,list())+[n]
-count_dict
-# %%
-comp_dict = dict(A='T', C='G', T='A', G='C')
-input_seq_list = list(input_seq)
-comp_seq = list(map(comp_dict.get, input_seq_list))
-# %%
-comp_seq
+# get_comp_seq(input_seq, reverse=False), get_comp_seq(input_seq, reverse=True)
+# # %%
+# comp_dict = dict(A='T', C='G', T='A', G='C')
+# # %%
+# count_dict = dict()
+# for n, k in enumerate(input_seq):
+#     count_dict[k] = count_dict.get(k,list())+[n]
+# count_dict
+# # %%
+# comp_dict = dict(A='T', C='G', T='A', G='C')
+# input_seq_list = list(input_seq)
+# comp_seq = list(map(comp_dict.get, input_seq_list))
+# # %%
+# comp_seq
 # %% ----------------------------------------
-[ ('U' if nt == 'T' else nt) for nt in comp_seq ]
-# %%
-get_comp_seq(input_seq, reverse=False, RNA_seq=False)
-# %%
-get_comp_seq(input_seq, reverse=False, RNA_seq=True)
-# %%
-get_comp_seq(input_seq, reverse=True, RNA_seq=False)
-# %%
-get_comp_seq(input_seq, reverse=True, RNA_seq=True)
-# %%
-get_comp_seq(input_seq, reverse=True, RNA_seq=True)
+# [ ('U' if nt == 'T' else nt) for nt in comp_seq ]
+# # %%
+# get_comp_seq(input_seq, reverse=False, RNA_seq=False)
+# # %%
+# get_comp_seq(input_seq, reverse=False, RNA_seq=True)
+# # %%
+# get_comp_seq(input_seq, reverse=True, RNA_seq=False)
+# # %%
+# get_comp_seq(input_seq, reverse=True, RNA_seq=True)
+# # %%
+# get_comp_seq(input_seq, reverse=True, RNA_seq=True)
 # %% ----------------------------------------
 class CompSeq:
     def __init__(self):
@@ -343,34 +340,40 @@ _get_comp_seq(input_seq,True,False)
 # %%     Q) 1E
 def clump_finding(genome_seq, k, L, t):
     freq_patterns = list()
-    clump_arr = np.zeros(shape=(4**k))
+    clump_arr = np.zeros(shape=(4**k))       # freq_arr와 동일한 형태 (가능한 모든 kmer 경우의 수)
     for i in range(len(genome_seq)-L+1):
         window = genome_seq[i:i+L]
         freq_arr = computing_frequencies(window, k)
         idx_clump = np.where(freq_arr >= t)[0]
         if len(idx_clump) != 0:
-            clump_arr[idx_clump] = 1
-    idx = np.where(clump_arr == 1)[0]
-    for i in idx:
+            clump_arr[idx_clump] = 1         # clump count 누적 없이 존재 유무만 체크 (1=있음, 0=없음)
+    idx_arr = np.where(clump_arr == 1)[0]    # count 누적 안되게 존재 유뮤만 알 수 있는 idx_arr를 만들기 위함
+    for i in idx_arr:
         pattern = num2pattern_recur(i, k)
         freq_patterns.append(pattern)
     return freq_patterns
 # %% ----------------------------------------
 genome_seq = 'CGGACTCGACAGATGTGAAGAAATGTGAAGACTGAGTGAAGAGAAGAGGAAACACGACACGACATTGCGACATAATGTACGAATGTAATGTGCCTATGGC'
-
-clump_finding(genome_seq, 5, 75, 4)
+k = 5
+L = 75
+t = 4
+# clump_finding(genome_seq, 5, 75, 4)
 # %%   Q) 1E (ver.코드 정리)
 
 def find_clump_idxs(genome_seq, k, L, t):
-    clump_arr = np.zeros(shape=(4**k))
+    # clump_arr = np.zeros(shape=(4**k))    
+    clump_idxs = np.array([])
     for i in range(len(genome_seq)-L+1):    
         window = genome_seq[i:i+L]
         freq_arr = computing_frequencies(window, k)
         idx_clump = np.where(freq_arr >= t)[0]
-        if len(idx_clump) != 0:
-            clump_arr[idx_clump] = 1
-    idx_arr = np.where(clump_arr == 1)[0]
-    return idx_arr
+        clump_idxs = np.concatenate([clump_idxs, idx_clump])
+    return np.unique(clump_idxs)
+
+    #     if len(idx_clump) != 0:
+    #         clump_arr[idx_clump] = 1     
+    # idx_arr = np.where(clump_arr == 1)[0]
+    # return idx_arr
 
 def num_arr2pattern_list(clump_idx_arr, k):
     freq_patterns = list()
@@ -383,3 +386,97 @@ def find_clump_patterns(genome_seq, k, L, t):
     clump_idx_arr = find_clump_idxs(genome_seq, k, L, t)
     freq_patterns = num_arr2pattern_list(clump_idx_arr, k)
     return freq_patterns 
+# %% ----------------------------------------
+def find_clump_patterns_better(genome_seq, k, L, t):
+    clump_arr = np.zeros(shape=(4**k)) 
+    window = genome_seq[0:L]
+    freq_arr = computing_frequencies(window, k)
+    idx_arr = np.where(freq_arr >= t)[0]
+    clump_arr[idx_arr] = 1
+    for i in range(1, len(genome_seq)-L+1):
+        first_pattern = genome_seq[i-1:k]
+        first_patt_idx = pattern2num_recur(first_pattern)
+        freq_arr[first_patt_idx] -= 1
+
+        window = genome_seq[i:i+L]   
+        last_pattern = window[-k:]   # window의 끝에서부터 k개 선택 
+        last_patt_idx = pattern2num_recur(last_pattern) 
+        freq_arr[last_patt_idx] += 1
+
+        idx_arr = np.where(freq_arr >= t)[0]
+        clump_arr[idx_arr] = 1
+
+    clump_idx_arr = np.where(clump_arr == 1)[0]
+    freq_patterns_list = list()
+    for idx in clump_idx_arr:
+        pattern = num2pattern_recur(idx, k)
+        freq_patterns_list.append(pattern)
+    return freq_patterns_list
+# %%
+%timeit find_clump_patterns_better(genome_seq, k, L, t)
+# %%
+%timeit find_clump_patterns(genome_seq, k, L, t)
+# %% ----------------------------------------
+4000/322
+# %%   Q) 1G
+genome_seq = 'CCTATCGGTGGATTAGCATGTCCCTGTACGTTTCGCCGCGAACTAGTTCACACGGCTTGATGGCAAATGGTTTTTCCGGCGACCGTAATCGTCCACCGAG'
+# %%
+# np.fromstring(genome_seq,dtype=np.uint8)
+# %%
+# %timeit aa = np.fromstring(genome_seq,dtype=np.uint8) % 5 % 4
+# %%
+num_dict = dict(A=0,T=0,C=-1,G=1)
+seq_list = list(genome_seq)
+# %% ----------------------------------------
+# %timeit aa = np.cumsum(list(map(num_dict.get, list(genome_seq))))
+# %% ----------------------------------------
+nt2num_seq = list(map(num_dict.get, list(genome_seq)))
+# %% ----------------------------------------
+nt2num_seq = np.insert(nt2num_seq, obj=0, values=0)
+# %% ----------------------------------------
+arr = np.cumsum(nt2num_seq)
+arr
+# %% ----------------------------------------
+min_idx_list = np.where(arr == np.min(arr))
+# %%
+from bokeh.plotting import figure, save
+from bokeh.io import output_notebook, show
+output_notebook()
+# %%
+x = np.arange(len(arr))
+p = figure(title = 'genome sequence asymmetric diagram', x_axis_label = 'location', y_axis_label = 'G count-C count')
+p.line(x,arr, line_width = 2)
+show(p)
+# %%
+min_idx_list
+# %% ----------------------------------------
+class SeqAsymmetry:
+    def __init__(self, genome_seq):
+        # get cum_arr and min/max idx list
+        num_dict = dict(A=0,T=0,C=-1,G=1)
+        nt2num_seq = list(map(num_dict.get, list(genome_seq))) # nt를 숫자로 변환
+        nt2num_seq_add_0 = np.insert(nt2num_seq, obj=0, values=0) # 첫번째 dix에 0값 추가
+        cum_arr = np.cumsum(nt2num_seq_add_0)
+        min_idx_list = np.where(cum_arr == np.min(cum_arr))
+        max_idx_list = np.where(cum_arr == np.max(cum_arr))
+
+        # diagram
+        x = np.arange(len(arr))
+        p = figure(title = 'genome sequence asymmetric diagram', x_axis_label = 'location', y_axis_label = 'G count-C count')
+        p.line(x,arr, line_width = 2)
+
+        self.diagram = p
+        self.ori_position = min_idx_list
+        self.ter_position = max_idx_list
+    
+    def show_fig(self):
+        show(self.diagram)
+# %%
+seq_asymmetry = SeqAsymmetry(genome_seq)
+# %%
+seq_asymmetry.ori_position
+# %%
+seq_asymmetry.ter_position
+# %%
+seq_asymmetry.show_fig()
+# %%
