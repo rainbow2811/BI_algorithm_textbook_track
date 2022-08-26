@@ -626,3 +626,4 @@ def get_comp_idx(idx,k):
     comp_pattern = get_comp_reverse_seq(pattern)
     comp_idx = pattern2num_recur(comp_pattern)
     return comp_idx, pattern, comp_pattern
+# %% ----------------------------------------
