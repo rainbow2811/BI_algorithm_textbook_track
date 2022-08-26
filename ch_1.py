@@ -430,25 +430,9 @@ seq_list = list(genome_seq)
 # %% ----------------------------------------
 # %timeit aa = np.cumsum(list(map(num_dict.get, list(genome_seq))))
 # %% ----------------------------------------
-nt2num_seq = list(map(num_dict.get, list(genome_seq)))
-# %% ----------------------------------------
-nt2num_seq = np.insert(nt2num_seq, obj=0, values=0)
-# %% ----------------------------------------
-arr = np.cumsum(nt2num_seq)
-arr
-# %% ----------------------------------------
-min_idx_list = np.where(arr == np.min(arr))
-# %%
 from bokeh.plotting import figure, save
 from bokeh.io import output_notebook, show
 output_notebook()
-# %%
-x = np.arange(len(arr))
-p = figure(title = 'genome sequence asymmetric diagram', x_axis_label = 'location', y_axis_label = 'G count-C count')
-p.line(x,arr, line_width = 2)
-show(p)
-# %%
-min_idx_list
 # %% ----------------------------------------
 class SeqAsymmetry:
     def __init__(self, genome_seq):
@@ -461,9 +445,12 @@ class SeqAsymmetry:
         max_idx_list = np.where(cum_arr == np.max(cum_arr))
 
         # diagram
-        x = np.arange(len(arr))
-        p = figure(title = 'genome sequence asymmetric diagram', x_axis_label = 'location', y_axis_label = 'G count-C count')
-        p.line(x,arr, line_width = 2)
+        x = np.arange(len(cum_arr))
+        p = figure(
+            title = 'genome sequence asymmetric diagram', 
+            x_axis_label = 'location', 
+            y_axis_label = 'G count-C count')
+        p.line(x,cum_arr, line_width = 2)
 
         self.diagram = p
         self.ori_position = min_idx_list
@@ -480,3 +467,162 @@ seq_asymmetry.ter_position
 # %%
 seq_asymmetry.show_fig()
 # %%
+# %%  Q) 1H
+def hamming_distance(pattern1, pattern2):
+    match_list = list(map(lambda x, y: 0 if x == y else 1, pattern1, pattern2))
+    return np.sum(match_list)
+# %%
+def approximate_patt_count(text, pattern, d):
+    count = 0
+    for i in range(len(text)-len(pattern)):
+        compared_pattern = text[i:i+len(pattern)]
+        if hamming_distance(pattern, compared_pattern) <= d:
+            count += 1
+    return count
+# %%
+pat1 = 'GGGCCGTTGGT'
+pat2 = 'GGACCGTTGAC'
+hamming_distance(pat1,pat2)
+# %%
+text = 'AACAAGCATAAACATTAAAGAG'
+pattern = 'AAAAA'
+d = 2
+# %%
+approximate_patt_count(text, pattern, d)
+# %%
+def hamming_distance_psp(pattern1:str, pattern2:str):
+    a = np.frombuffer(pattern1.encode(), dtype=np.uint8)
+    b = np.frombuffer(pattern2.encode(), dtype=np.uint8)
+    return np.nonzero(a - b)[0].shape[0]
+# %%  Q) 1I
+nt_set = set(['A','G','C','T'])
+pattern = 'ACG'
+# %%
+# neighbors_list = list()
+# for i in range(len(pattern)):
+#     nt_remainder_set = nt_set - set(pattern[i])
+#     for nt in nt_remainder_set:
+#         neighbors_pattern = pattern[:i] + nt +pattern[i+1:]
+#         neighbors_list.append(neighbors_pattern)
+# %%   Q) 1I
+def neighbors(pattern):
+    nt_set = set(['A','G','C','T'])
+    neighbors_list = list()
+    for i in range(len(pattern)):
+        nt_remainder_set = nt_set - set(pattern[i])
+        for nt in nt_remainder_set:
+            neighbors_pattern = pattern[:i] + nt + pattern[i+1:]
+            neighbors_list.append(neighbors_pattern)
+    return neighbors_list
+# %%
+def neighbors_distance(pattern, d):
+    n_list = [pattern] + neighbors(pattern)
+    for _ in range(d-1):
+        n_list = np.unique(list(map(neighbors, n_list)))
+    return n_list
+# %%
+neighbors_distance(pattern,3)
+# %% ----------------------------------------
+symbol_dict = dict(A=0, C=1, G=2, T=3)
+
+def last_symbol(pattern):
+    last_sb = pattern[-1]
+    return last_sb
+
+def prefix(pattern):
+    prefix = pattern[:-1]
+    return prefix
+
+def pattern2num_recur(pattern):
+    if pattern == '':
+        return 0
+    symbol = last_symbol(pattern)
+    _prefix = prefix(pattern)
+    return 4*pattern2num_recur(_prefix) + symbol_dict[symbol]
+# %% ----------------------------------------
+def num2symbol(index):
+    index_dict = {v:k for k,v in symbol_dict.items()}
+    symbol = index_dict[index]
+    return symbol
+
+def num2pattern_recur(index, k):
+    if k == 1:
+        symbol = num2symbol(index)
+        return symbol
+    prefix_index = index // 4
+    remainder = index % 4
+    # print(f"k = {k} : prefix_index={prefix_index},remainder={remainder}")
+    symbol = num2symbol(remainder)
+    prefix_pattern = num2pattern_recur(prefix_index, k-1)
+    pattern = prefix_pattern + symbol
+    return pattern
+# %%
+def computing_frequency_w_mismatches(text, k, d):
+    freq_arr = np.zeros(4**k)
+    for i in range(len(text)-k+1):
+        pattern = text[i:i+k]
+        neighbors_list = neighbors_distance(pattern, d)
+        for neighbor_pattern in neighbors_list:
+            idx = pattern2num_recur(neighbor_pattern)
+            freq_arr[idx] += 1
+    return freq_arr           
+# %%  Q) 1J
+text = 'CATTCAGCATTCAGCATTCAGCATTCAGTCTCTCCCCATTCAGAGCATTAGTGCGTGAGTCATTCAGTGCGTGAGTTGCGTGAGTTCTCTCCCTCTCTCCCTCTCTCCCTGCGTGAGTGATGCAGTCTCTCTCCCGATGCAGTCCATTCAGCATTCAGTGCGTGAGTCATTCAGCATTCAGAGCATTAGCATTCAGCATTCAGTGCGTGAGTGATGCAGTCTGCGTGAGTGATGCAGTCTCTCTCCCTGCGTGAGTCATTCAGTCTCTCCCCATTCAGAGCATTAGGATGCAGTCAGCATTAGTCTCTCCCTGCGTGAGTCATTCAGCATTCAGTCTCTCCCGATGCAGTCTGCGTGAGTAGCATTAGTGCGTGAGTGATGCAGTCTGCGTGAGTCATTCAGCATTCAGCATTCAGTGCGTGAGTCATTCAGAGCATTAGAGCATTAGTCTCTCCCAGCATTAGGATGCAGTCGATGCAGTCGATGCAGTCGATGCAGTCCATTCAGCATTCAGTGCGTGAGTAGCATTAGCATTCAGCATTCAGTGCGTGAGTTCTCTCCCAGCATTAGTCTCTCCCGATGCAGTCCATTCAGTCTCTCCCTGCGTGAGTCATTCAGTGCGTGAGTCATTCAGTCTCTCCCCATTCAGCATTCAGTGCGTGAGTTCTCTCCCTGCGTGAGTAGCATTAGCATTCAGAGCATTAGTCTCTCCCTGCGTGAGTGATGCAGTCTGCGTGAGTGATGCAGTCCATTCAGAGCATTAGAGCATTAGTCTCTCCCTGCGTGAGTTGCGTGAGTAGCATTAGTCTCTCCCGATGCAGTCCATTCAGCATTCAGAGCATTAGCATTCAGTGCGTGAGT'
+k = 6
+d = 3
+# %%
+import typing as tp
+class MostFrequentPattern(tp.NamedTuple):
+    the_most_frequent_patterns:list
+    max_frequency:int
+
+def find_the_most_frequent_pattern_w_mismatch(text, k ,d):
+    freq_arr = computing_frequency_w_mismatches(text, k, d)
+    max_freq = np.max(freq_arr)
+    idx_arr_max_freq = np.where( freq_arr == max_freq)[0]
+
+    the_most_frequent_patterns = list()
+    for idx in idx_arr_max_freq:
+        pattern = num2pattern_recur(idx, k)
+        the_most_frequent_patterns.append(pattern)
+    # return dict(
+    #     the_most_frequent_patterns=the_most_frequent_patterns, 
+    #     max_frequency=max_freq
+    #     )
+    return MostFrequentPattern(the_most_frequent_patterns,max_freq)
+# %%
+answer = find_the_most_frequent_pattern_w_mismatch(text, k, d)
+answer
+# %% ----------------------------------------
+find_the_most_frequent_pattern_w_mismatch("AACAAGCTGATAAACATTTAAAGAG",5,1)
+# %% ----------------------------------------
+def get_comp_reverse_seq(text):
+    comp_dict = dict(A='T', C='G', G='C', T='A')
+    comp_reverse_seq = "".join(map(comp_dict.get, reversed(text)))
+    return comp_reverse_seq
+# %%
+def find_the_most_frequent_pattern_w_mismatch_reverse(text, k, d):
+    freq_arr = computing_frequency_w_mismatches(text, k, d)
+    comp_reverse_seq = get_comp_reverse_seq(text)
+    reverse_freq_arr = computing_frequency_w_mismatches(comp_reverse_seq, k, d)
+    freq_arr_ds = np.add(freq_arr, reverse_freq_arr)
+
+    max_freq = np.max(freq_arr_ds)
+    idx_arr_max_freq = np.where( freq_arr_ds == max_freq)[0]
+
+    the_most_frequent_patterns = list()
+    for idx in idx_arr_max_freq:
+        pattern = num2pattern_recur(idx, k)
+        the_most_frequent_patterns.append(pattern)
+
+    return MostFrequentPattern(the_most_frequent_patterns,max_freq)
+# %% ----------------------------------------
+find_the_most_frequent_pattern_w_mismatch(text, k, d)
+# %%
+find_the_most_frequent_pattern_w_mismatch_reverse(text, k, d)
+# %%
+def get_comp_idx(idx,k):
+    pattern = num2pattern_recur(idx,k)
+    comp_pattern = get_comp_reverse_seq(pattern)
+    comp_idx = pattern2num_recur(comp_pattern)
+    return comp_idx, pattern, comp_pattern
