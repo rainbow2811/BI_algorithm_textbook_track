@@ -35,7 +35,6 @@ def frequent_words_dict(text, k):
     # return sorted(count_dict.items(),key=lambda x:len(x[1]),reverse=True)
 # %% ----------------------------------------
 actg = list('ACGT')
-actg
 # %%
 def two_mer_pattern():
     two_mer_list = list()
@@ -46,9 +45,6 @@ def two_mer_pattern():
     return two_mer_list
 # %%
 base = np.array(list('ACGT'))
-base, base.shape
-# %% ----------------------------------------
-[2]*3
 # %% ----------------------------------------
 def make_shape(k,i):
     # ex) (k=3, i=0) --> [4,1,1] , (k=3, i=1) --> [1,4,1] , (k=3, i=2) --> [1,1,4]
@@ -85,7 +81,7 @@ def prefix(pattern):
     return prefix
 # %% ----------------------------------------
 symbol_dict = dict(A=0, C=1, G=2, T=3)
-index_dict = {v:k for k,v in symbol_dict.items()}
+# index_dict = {v:k for k,v in symbol_dict.items()}
 # %%   Q) 1L
 def pattern2num_recur(pattern):
     if pattern == '':
@@ -139,8 +135,6 @@ def faster_frequent_words_np(text, k):
         pattern = num2pattern_recur(i,k)
         frequent_patterns.append(pattern)
     return frequent_patterns
-# %timeit faster_frequent_words(text,k)
-# %timeit faster_frequent_words_np(text,k)
 # %%
 def finding_frequent_words_by_sorting(text,k):
     freq_pattern_list = list()
@@ -167,11 +161,6 @@ def finding_frequent_words_by_sorting(text,k):
             
     return freq_pattern_list
 # %% ----------------------------------------
-text = 'AAGCAAAGGTGGG'
-k = 2
-# %%
-finding_frequent_words_by_sorting(text, k)
-# %% ----------------------------------------
 def finding_frequent_words_by_sorting_nr(text,k):
     freq_pattern_list = list()
     N_kmer = len(text)-k+1
@@ -196,10 +185,6 @@ def finding_frequent_words_by_sorting_nr(text,k):
         freq_pattern_list.append(pattern)
 
     return freq_pattern_list
-# %%
-# %timeit finding_frequent_words_by_sorting(text, k)
-# # %% ----------------------------------------
-# %timeit finding_frequent_words_by_sorting_nr(text, k)
 # %%
 def finding_frequent_words_by_sorting_ph(text,k):
     freq_pattern_list = list()
@@ -236,15 +221,8 @@ def finding_frequent_words_by_sorting_ph(text,k):
         pattern = num2pattern_recur(i,k)
         freq_pattern_list.append(pattern)
     return freq_pattern_list
-# %%
-# %timeit finding_frequent_words_by_sorting_ph(text, k)
-# %%
-finding_frequent_words_by_sorting_ph(text, k)
-# %%
-finding_frequent_words_by_sorting_nr(text, k)
 # %% 1C
 comp_dict = dict(A='T', C='G', T='A', G='C')
-comp_dict
 # %%
 input_seq = 'AGTCGCATAGT'
 # %%
@@ -253,17 +231,6 @@ class Seq(tp.NamedTuple):
     comp_seq:str
     ori_seq:str
     RNA_seq:bool
-
-    # def __init__(self, comp_seq, ori_seq, RNA_seq):
-    #     self.comp_seq = comp_seq
-    #     self.ori_seq = ori_seq
-    #     self.RNA_seq = RNA_seq
-    
-    # def __str__(self):
-    #     return f"comp_seq = {self.comp_seq}, ori_seq = {self.ori_seq}, RNA_seq = {self.RNA_seq}"
-
-    # def __repr__(self):
-    #     return f"comp_seq = {self.comp_seq}, ori_seq = {self.ori_seq}, RNA_seq = {self.RNA_seq}"
 # %% ----------------------------------------
 def get_comp_seq(input_seq, reverse = True, RNA_seq = False):
     if RNA_seq:
@@ -286,33 +253,6 @@ def get_comp_seq(input_seq, reverse = True, RNA_seq = False):
     # return comp_seq
     return Seq(comp_seq,input_seq,RNA_seq)
 # %%
-# get_comp_seq(input_seq, reverse=False), get_comp_seq(input_seq, reverse=True)
-# # %%
-# comp_dict = dict(A='T', C='G', T='A', G='C')
-# # %%
-# count_dict = dict()
-# for n, k in enumerate(input_seq):
-#     count_dict[k] = count_dict.get(k,list())+[n]
-# count_dict
-# # %%
-# comp_dict = dict(A='T', C='G', T='A', G='C')
-# input_seq_list = list(input_seq)
-# comp_seq = list(map(comp_dict.get, input_seq_list))
-# # %%
-# comp_seq
-# %% ----------------------------------------
-# [ ('U' if nt == 'T' else nt) for nt in comp_seq ]
-# # %%
-# get_comp_seq(input_seq, reverse=False, RNA_seq=False)
-# # %%
-# get_comp_seq(input_seq, reverse=False, RNA_seq=True)
-# # %%
-# get_comp_seq(input_seq, reverse=True, RNA_seq=False)
-# # %%
-# get_comp_seq(input_seq, reverse=True, RNA_seq=True)
-# # %%
-# get_comp_seq(input_seq, reverse=True, RNA_seq=True)
-# %% ----------------------------------------
 class CompSeq:
     def __init__(self):
         self.dna_comp_dict = dict(A='U', C='G', T='A', G='C')
@@ -333,10 +273,6 @@ class CompSeq:
             comp_seq = ''.join(comp_seq)
 
         return Seq(comp_seq,input_seq,RNA_seq)
-# %%
-_get_comp_seq = CompSeq()
-# %%
-_get_comp_seq(input_seq,True,False)
 # %%     Q) 1E
 def clump_finding(genome_seq, k, L, t):
     freq_patterns = list()
@@ -352,12 +288,6 @@ def clump_finding(genome_seq, k, L, t):
         pattern = num2pattern_recur(i, k)
         freq_patterns.append(pattern)
     return freq_patterns
-# %% ----------------------------------------
-genome_seq = 'CGGACTCGACAGATGTGAAGAAATGTGAAGACTGAGTGAAGAGAAGAGGAAACACGACACGACATTGCGACATAATGTACGAATGTAATGTGCCTATGGC'
-k = 5
-L = 75
-t = 4
-# clump_finding(genome_seq, 5, 75, 4)
 # %%   Q) 1E (ver.코드 정리)
 
 def find_clump_idxs(genome_seq, k, L, t):
@@ -369,11 +299,6 @@ def find_clump_idxs(genome_seq, k, L, t):
         idx_clump = np.where(freq_arr >= t)[0]
         clump_idxs = np.concatenate([clump_idxs, idx_clump])
     return np.unique(clump_idxs)
-
-    #     if len(idx_clump) != 0:
-    #         clump_arr[idx_clump] = 1     
-    # idx_arr = np.where(clump_arr == 1)[0]
-    # return idx_arr
 
 def num_arr2pattern_list(clump_idx_arr, k):
     freq_patterns = list()
@@ -412,21 +337,6 @@ def find_clump_patterns_better(genome_seq, k, L, t):
         pattern = num2pattern_recur(idx, k)
         freq_patterns_list.append(pattern)
     return freq_patterns_list
-# %%
-# %timeit find_clump_patterns_better(genome_seq, k, L, t)
-# %%
-# %timeit find_clump_patterns(genome_seq, k, L, t)
-# %% ----------------------------------------
-4000/322
-# %%   Q) 1G
-genome_seq = 'CCTATCGGTGGATTAGCATGTCCCTGTACGTTTCGCCGCGAACTAGTTCACACGGCTTGATGGCAAATGGTTTTTCCGGCGACCGTAATCGTCCACCGAG'
-# %%
-# np.fromstring(genome_seq,dtype=np.uint8)
-# %%
-# %timeit aa = np.fromstring(genome_seq,dtype=np.uint8) % 5 % 4
-# %%
-num_dict = dict(A=0,T=0,C=-1,G=1)
-seq_list = list(genome_seq)
 # %% ----------------------------------------
 # %timeit aa = np.cumsum(list(map(num_dict.get, list(genome_seq))))
 # %% ----------------------------------------
@@ -458,15 +368,6 @@ class SeqAsymmetry:
     
     def show_fig(self):
         show(self.diagram)
-# %%
-seq_asymmetry = SeqAsymmetry(genome_seq)
-# %%
-seq_asymmetry.ori_position
-# %%
-seq_asymmetry.ter_position
-# %%
-seq_asymmetry.show_fig()
-# %%
 # %%  Q) 1H
 def hamming_distance(pattern1, pattern2):
     match_list = list(map(lambda x, y: 0 if x == y else 1, pattern1, pattern2))
@@ -480,30 +381,10 @@ def approximate_patt_count(text, pattern, d):
             count += 1
     return count
 # %%
-pat1 = 'GGGCCGTTGGT'
-pat2 = 'GGACCGTTGAC'
-hamming_distance(pat1,pat2)
-# %%
-text = 'AACAAGCATAAACATTAAAGAG'
-pattern = 'AAAAA'
-d = 2
-# %%
-approximate_patt_count(text, pattern, d)
-# %%
 def hamming_distance_psp(pattern1:str, pattern2:str):
     a = np.frombuffer(pattern1.encode(), dtype=np.uint8)
     b = np.frombuffer(pattern2.encode(), dtype=np.uint8)
     return np.nonzero(a - b)[0].shape[0]
-# %%  Q) 1I
-nt_set = set(['A','G','C','T'])
-pattern = 'ACG'
-# %%
-# neighbors_list = list()
-# for i in range(len(pattern)):
-#     nt_remainder_set = nt_set - set(pattern[i])
-#     for nt in nt_remainder_set:
-#         neighbors_pattern = pattern[:i] + nt +pattern[i+1:]
-#         neighbors_list.append(neighbors_pattern)
 # %%   Q) 1I
 def neighbors(pattern):
     nt_set = set(['A','G','C','T'])
@@ -520,8 +401,6 @@ def neighbors_distance(pattern, d):
     for _ in range(d-1):
         n_list = np.unique(list(map(neighbors, n_list)))
     return n_list
-# %%
-neighbors_distance(pattern,3)
 # %% ----------------------------------------
 symbol_dict = dict(A=0, C=1, G=2, T=3)
 
@@ -567,10 +446,6 @@ def computing_frequency_w_mismatches(text, k, d):
             freq_arr[idx] += 1
     return freq_arr           
 # %%  Q) 1J
-text = 'CATTCAGCATTCAGCATTCAGCATTCAGTCTCTCCCCATTCAGAGCATTAGTGCGTGAGTCATTCAGTGCGTGAGTTGCGTGAGTTCTCTCCCTCTCTCCCTCTCTCCCTGCGTGAGTGATGCAGTCTCTCTCCCGATGCAGTCCATTCAGCATTCAGTGCGTGAGTCATTCAGCATTCAGAGCATTAGCATTCAGCATTCAGTGCGTGAGTGATGCAGTCTGCGTGAGTGATGCAGTCTCTCTCCCTGCGTGAGTCATTCAGTCTCTCCCCATTCAGAGCATTAGGATGCAGTCAGCATTAGTCTCTCCCTGCGTGAGTCATTCAGCATTCAGTCTCTCCCGATGCAGTCTGCGTGAGTAGCATTAGTGCGTGAGTGATGCAGTCTGCGTGAGTCATTCAGCATTCAGCATTCAGTGCGTGAGTCATTCAGAGCATTAGAGCATTAGTCTCTCCCAGCATTAGGATGCAGTCGATGCAGTCGATGCAGTCGATGCAGTCCATTCAGCATTCAGTGCGTGAGTAGCATTAGCATTCAGCATTCAGTGCGTGAGTTCTCTCCCAGCATTAGTCTCTCCCGATGCAGTCCATTCAGTCTCTCCCTGCGTGAGTCATTCAGTGCGTGAGTCATTCAGTCTCTCCCCATTCAGCATTCAGTGCGTGAGTTCTCTCCCTGCGTGAGTAGCATTAGCATTCAGAGCATTAGTCTCTCCCTGCGTGAGTGATGCAGTCTGCGTGAGTGATGCAGTCCATTCAGAGCATTAGAGCATTAGTCTCTCCCTGCGTGAGTTGCGTGAGTAGCATTAGTCTCTCCCGATGCAGTCCATTCAGCATTCAGAGCATTAGCATTCAGTGCGTGAGT'
-k = 6
-d = 3
-# %%
 import typing as tp
 class MostFrequentPattern(tp.NamedTuple):
     the_most_frequent_patterns:list
@@ -585,16 +460,8 @@ def find_the_most_frequent_pattern_w_mismatch(text, k ,d):
     for idx in idx_arr_max_freq:
         pattern = num2pattern_recur(idx, k)
         the_most_frequent_patterns.append(pattern)
-    # return dict(
-    #     the_most_frequent_patterns=the_most_frequent_patterns, 
-    #     max_frequency=max_freq
-    #     )
+
     return MostFrequentPattern(the_most_frequent_patterns,max_freq)
-# %%
-answer = find_the_most_frequent_pattern_w_mismatch(text, k, d)
-answer
-# %% ----------------------------------------
-find_the_most_frequent_pattern_w_mismatch("AACAAGCTGATAAACATTTAAAGAG",5,1)
 # %% ----------------------------------------
 def get_comp_reverse_seq(text):
     comp_dict = dict(A='T', C='G', G='C', T='A')
@@ -616,10 +483,6 @@ def find_the_most_frequent_pattern_w_mismatch_reverse(text, k, d):
         the_most_frequent_patterns.append(pattern)
 
     return MostFrequentPattern(the_most_frequent_patterns,max_freq)
-# %% ----------------------------------------
-find_the_most_frequent_pattern_w_mismatch(text, k, d)
-# %%
-find_the_most_frequent_pattern_w_mismatch_reverse(text, k, d)
 # %%
 def get_comp_idx(idx,k):
     pattern = num2pattern_recur(idx,k)
