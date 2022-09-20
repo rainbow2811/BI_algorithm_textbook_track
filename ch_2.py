@@ -3,53 +3,48 @@ import numpy as np
 from src import pattern_base, hamming_distance_base
 import importlib
 import typing as tp
+import itertools as it
 Kmer = tp.AnyStr
 # %% ----------------------------------------
 importlib.reload(pattern_base)
 # %%    Q) 2A
-k = 5
-d = 2
+k = 3
+d = 1
 # %% ----------------------------------------
 dnas = """
-CTTAACAACGTAGGGAGCCGAGCGT
-TGCAGATTAACCAACCAATGACCCA
-CACCGTGTGCTATGTCTGTTAGCCT
-GCACTAGCCAGAAGAACGGCATAGG
-ATAAGAAGAGAACCAGGTCCCGAGG
-TTGTGCTCATTAGTCAGCCGTGGAG
-AGTTTAGGGGAACCGGGGCCAGCCT
-ATTGAGGATGTTACAGCGTCACCCG
-CCCCCTCTCTTACACAACCTGACTC
-GCACAATCCGCATCTAAAATAGCGC
+ATTTGGC
+TGCCTTA
+CGGTATC
+GAAAATT
 """
 dnas
 # %% ----------------------------------------
-_dna_list = dnas.strip().split('\n')
-_dna_list
-# %% ----------------------------------------
-dna_list = list()
-for dna in _dna_list:
-    text_list = dna.split(' ')
-    dna = text_list[-1]
-    dna_list.append(dna)
-# %% ----------------------------------------
-dna_list = [dna.split(' ')[-1] for dna in _dna_list]
-dna_list
-# %% ----------------------------------------
-def preprocess_dna(raw_dna):
-    """
-    ex)
+# _dna_list = dnas.strip().split('\n')
+# _dna_list
+# # %% ----------------------------------------
+# dna_list = list()
+# for dna in _dna_list:
+#     text_list = dna.split(' ')
+#     dna = text_list[-1]
+#     dna_list.append(dna)
+# # # %% ----------------------------------------
+# dna_list = [dna.split(' ')[-1] for dna in _dna_list]
+# dna_list
+# # %% ----------------------------------------
+# def preprocess_dna(raw_dna):
+#     """
+#     ex)
 
-    raw_dna = '1  ATTTGGC'
+#     raw_dna = '1  ATTTGGC'
 
-    raw_dna.split(' ') --> ['1', '', 'ATTTGGC']
+#     raw_dna.split(' ') --> ['1', '', 'ATTTGGC']
 
-    output_dna = 'ATTTGGC'
+#     output_dna = 'ATTTGGC'
 
-    """
-    output_dna = raw_dna.split(' ')[-1] 
+#     """
+#     output_dna = raw_dna.split(' ')[-1] 
 
-    return output_dna
+#     return output_dna
 # %% ----------------------------------------
 # list(map(preprocess_dna, _dna_list))
 # %% ----------------------------------------
@@ -95,8 +90,6 @@ def motif_enumeration(dna_data, k, d):
             kmer_motif_set.add(neighbor)
     return kmer_motif_set
 # %% ----------------------------------------
-motif_enumeration(dnas,k,d)
-# %% ----------------------------------------
 def get_kmer_neighbor_matrix(dna_list, k, d):
     kmer_neighbor_matrix = list()
     for dna in dna_list:
@@ -124,5 +117,46 @@ def motif_enumeration_psp(dna_data, k, d):
     motif_set = get_motif_set_from_neighbor_matrix(kmer_neighbor_matrix)
     return motif_set
 # %% ----------------------------------------
-" ".join(motif_enumeration_psp(dnas, k, d))
+# " ".join(motif_enumeration_psp(dnas, k, d))
+# %%    Q) 모티프 점수 최소화하는 kmer 집합 찾기
+def get_all_possible_kmer_matrix(dna_list, k):
+    matrix_for_kmer_list = list()
+    for dna in dna_list:
+        kmer_list = list(pattern_base.pattern_matrix(dna,k))
+        matrix_for_kmer_list.append(kmer_list)
+    return matrix_for_kmer_list
+# %%
+def get_all_possible_motif_matrix(matrix_for_kmer_list):
+    combination = list(it.product(*matrix_for_kmer_list))
+    return combination
+# %%
+def get_motif_nt_matrix(one_motif_set):
+    kmer_motif_matrix = list(map(lambda kmer:list(kmer), one_motif_set ))
+    return np.array(kmer_motif_matrix)
+# %%
+def get_score_from_nt_count_arr(column_nt_matrix):
+    _, counts = np.unique(column_nt_matrix, return_counts=True)
+    score = np.sum(counts)-np.max(counts)
+    return score
+# %%
+def get_score(nt_motif_matrix):
+    column_nt_matrix = list(zip(*nt_motif_matrix))
+    return list(map(get_score_from_nt_count_arr, column_nt_matrix))
+# %%
+def get_score_from_one_motif_set(one_motif_set):
+    nt_motif_matrix = get_motif_nt_matrix(one_motif_set)
+    return np.sum(get_score(nt_motif_matrix))
+# %%
+def find_min_score_motif_set(dna_list, k):
+    kmer_matrix = get_all_possible_kmer_matrix(dna_list, k)
+    comb = get_all_possible_motif_matrix(kmer_matrix)
+    motif_score_result = list(map(get_score_from_one_motif_set, comb))
+    min_score = np.min(motif_score_result)
+    min_score_idx = np.where(motif_score_result==min_score)[0][0]
+    return comb[min_score_idx], f"min_score = {min_score}"
+# %%
+dna_list = get_dna_list_from_raw_data(dnas)
+dna_list
+# %% ----------------------------------------
+find_min_score_motif_set(dna_list, k)
 # %%
