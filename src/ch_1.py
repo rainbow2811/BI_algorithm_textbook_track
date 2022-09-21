@@ -43,9 +43,9 @@ def two_mer_pattern():
             two_mer = e1 + e2
             two_mer_list.append(two_mer)
     return two_mer_list
-# %%
-base = np.array(list('ACGT'))
 # %% ----------------------------------------
+base = np.array(list('ACGT'))
+
 def make_shape(k,i):
     # ex) (k=3, i=0) --> [4,1,1] , (k=3, i=1) --> [1,4,1] , (k=3, i=2) --> [1,1,4]
     shape = np.ones(k)

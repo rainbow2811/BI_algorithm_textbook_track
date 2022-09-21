@@ -118,7 +118,8 @@ def motif_enumeration_psp(dna_data, k, d):
     return motif_set
 # %% ----------------------------------------
 # " ".join(motif_enumeration_psp(dnas, k, d))
-# %%    Q) 모티프 점수 최소화하는 kmer 집합 찾기
+# %%    Q) 모티프 찾기 문제 (p110)
+# 모티프 점수 최소화하는 kmer 집합 찾기 (Brute Forece Motif Search)
 def get_all_possible_kmer_matrix(dna_list, k):
     matrix_for_kmer_list = list()
     for dna in dna_list:
@@ -159,4 +160,54 @@ dna_list = get_dna_list_from_raw_data(dnas)
 dna_list
 # %% ----------------------------------------
 find_min_score_motif_set(dna_list, k)
+
+# %%  Q) 중앙 문자열 해결 (p141, 2H)
+def distance_btw_pattern_and_string(pattern, dna_list):
+    k = len(pattern)
+    distance = 0
+    for string in dna_list:
+        hamming_distance = len(string) * 2
+        pattern_set_from_one_string = pattern_base.pattern_matrix(string, k)
+        for _pattern in pattern_set_from_one_string:
+            h_distance = hamming_distance_base.hamming_distance(pattern, _pattern)
+            if hamming_distance > h_distance:
+                hamming_distance = h_distance
+        distance += hamming_distance
+    return distance
+# %%
+distance_btw_pattern_and_string('ATT', dna_list)
+# %%
+# class DNA:
+#     # def __init__(self, str1=None):
+#     #     self.str1 = str1
+#     pass
+# # %% ----------------------------------------
+# dna = DNA()
+# # %% ----------------------------------------
+# dna.str1 = 'TTACCTTAAC'
+# dna.str2 = 'GATATCTGTC'
+# dna.str3 = 'ACGGCGTTCG'
+# dna.str4 = 'CCCTAAAGAG'
+# dna.str5 = 'CGTCAGAGGT'
+# # dna_list = 
+# # %% ----------------------------------------
+# dna_list = [ getattr(dna, f"str{n}") for n in range(1,6) ]
+# # %%
+# dna_list
+# # %% ----------------------------------------
+# k = 3
+# %%
+distance_btw_pattern_and_string('AAA',dna_list)
+# %%
+def median_string(dna_list: tp.List[Kmer], k:int) -> Kmer:
+    distance = len(dna_list[0]) * 2
+    kmer_base_list = pattern_base.kmer_base(k)
+    for kmer_pattern in kmer_base_list:
+        calculated_distance = distance_btw_pattern_and_string(kmer_pattern, dna_list)
+        if distance > calculated_distance:
+            distance = calculated_distance
+            median_pattern = kmer_pattern
+    return median_pattern
+# %%
+median_string(dna_list, k)
 # %%
