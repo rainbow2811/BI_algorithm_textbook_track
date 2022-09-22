@@ -8,14 +8,20 @@ Kmer = tp.AnyStr
 # %% ----------------------------------------
 importlib.reload(pattern_base)
 # %%    Q) 2A
-k = 3
+k = 6
 d = 1
 # %% ----------------------------------------
 dnas = """
-ATTTGGC
-TGCCTTA
-CGGTATC
-GAAAATT
+GTAGTACCCACGATACAGTAGTAGCATAAAATTGCAATGTAC
+GTAGTTACATTTTCTCCGGTTGTTAACTGTCACGGGATATAT
+GGCAGTAACGTGACCTGATTAGTCCAACGAGTAGTTCGTTCG
+GTGTCTTAGCGCGGCATGCACGCCGGGGATGTAGTTTTGTGT
+GATCAGGGAAGATGATCCTTGAATACTAGCCATCGTGTAGTG
+TCGGACTCATTTTCAGGGCATCGTCACAGGGTAGTGCCCTAA
+GACCTGCGTAAATCACGTGGGCTGACCGTGATTTTCGTAGTG
+ACTCCTACCGATTGTGATACTCTCGTAGTTGTGAGATCATTT
+TACCCGTTCCGGCAGGCAGATTCGTGAGTTGTAGTAATCGGT
+TCTTGTTAGGGACACAAGTTGTGATAATAGAATATGGTAGTA
 """
 dnas
 # %% ----------------------------------------
@@ -52,6 +58,9 @@ def get_dna_list_from_raw_data(dna_data):
     _dna_list = dna_data.strip().split('\n')
     dna_list = [dna.split(' ')[-1] for dna in _dna_list]
     return dna_list
+# %% ----------------------------------------
+dna_list = get_dna_list_from_raw_data(dnas)
+dna_list
 # %% ----------------------------------------
 def get_kmer_neighbors_set_from_one_dna_string(dna_string, k, d):
     kmer_pattern_matrix = pattern_base.pattern_matrix(dna_string, k)
@@ -155,12 +164,8 @@ def find_min_score_motif_set(dna_list, k):
     min_score = np.min(motif_score_result)
     min_score_idx = np.where(motif_score_result==min_score)[0][0]
     return comb[min_score_idx], f"min_score = {min_score}"
-# %%
-dna_list = get_dna_list_from_raw_data(dnas)
-dna_list
 # %% ----------------------------------------
-find_min_score_motif_set(dna_list, k)
-
+%timeit find_min_score_motif_set(dna_list, k)
 # %%  Q) 중앙 문자열 해결 (p141, 2H)
 def distance_btw_pattern_and_string(pattern, dna_list):
     k = len(pattern)
@@ -175,8 +180,8 @@ def distance_btw_pattern_and_string(pattern, dna_list):
         distance += hamming_distance
     return distance
 # %%
-distance_btw_pattern_and_string('ATT', dna_list)
-# %%
+# distance_btw_pattern_and_string('ATT', dna_list)
+# %% ----------------------------------------
 # class DNA:
 #     # def __init__(self, str1=None):
 #     #     self.str1 = str1
@@ -196,8 +201,8 @@ distance_btw_pattern_and_string('ATT', dna_list)
 # dna_list
 # # %% ----------------------------------------
 # k = 3
-# %%
-distance_btw_pattern_and_string('AAA',dna_list)
+# # %%
+# distance_btw_pattern_and_string('AAA',dna_list)
 # %%
 def median_string(dna_list: tp.List[Kmer], k:int) -> Kmer:
     distance = len(dna_list[0]) * 2
@@ -209,5 +214,64 @@ def median_string(dna_list: tp.List[Kmer], k:int) -> Kmer:
             median_pattern = kmer_pattern
     return median_pattern
 # %%
-median_string(dna_list, k)
+%timeit median_string(dna_list, k)
+# %% 
+median_string(dna_list,k)
+# %% Q) most probable kmer 문제(p118)
+text = 'AAAGGCGTGTCTCCGGAAATATCAGAGGCTAATCGTGTTTACAATGACAAGAGTTACTCTTGTGCATCACATTGTCAATATTTGGATGTCACCTACAGCTATCTCTAGACCACGGGCGCATCCGGGCCCCATGGGGTTAAACCCACAATCACACTTACAGGTAATTTGGATGTCGTCTGACCATGTCTACTACCACGGGT'
+k = 8
+profile_str = """
+0.16 0.16 0.16 0.28 0.2 0.12 0.2 0.32
+0.4 0.4 0.28 0.28 0.36 0.28 0.36 0.16
+0.28 0.24 0.36 0.28 0.2 0.36 0.28 0.08
+0.16 0.2 0.2 0.16 0.24 0.24 0.16 0.44
+"""
+# %%
+# profile_str
+# # %%
+# _profile_list = profile_str.strip().split('\n')
+# _profile_list
+# # %%
+# profile_list = list()
+# for row_str in _profile_list:
+#     x = row_str.split(' ')
+#     profile_list.append(x)
+# profile_list
+# # %%
+# profile_matrix = np.array(profile_list)
+# profile_matrix.shape
+# %% ----------------------------------------
+def get_profile_matrix_from_profile_text(raw_profile):
+    _profile_list = profile_str.strip().split('\n')
+    profile_list = list()
+    for row_str in _profile_list:
+        x = row_str.split(' ')
+        profile_list.append(x)
+    return np.array(profile_list)
+# %% ----------------------------------------
+def get_prob_kmer(kmer, profile_matrix):
+    base = dict(A=0,C=1,G=2,T=3)
+    prob_nt_list = list()
+    for i, nt in enumerate(kmer):
+        actg_idx = base[nt]
+        prob_nt = float(profile_matrix[ actg_idx, i ])
+        prob_nt_list.append(prob_nt)
+    prob_kmer = np.prod(prob_nt_list)
+    return prob_kmer
+# %%
+def get_most_probable_kmer(text, k, text_profile):
+    profile_matrix = get_profile_matrix_from_profile_text(text_profile)
+
+    kmer_prob = 0
+    kmer_num = len(text)-k+1
+    probable_kmer = list()
+    for i in range(kmer_num):
+        kmer = text[i:i+k]
+        _prob_kmer = get_prob_kmer(kmer, profile_matrix)
+        if kmer_prob < _prob_kmer:
+            kmer_prob = _prob_kmer
+            probable_kmer = kmer
+    return probable_kmer
+# %%
+get_most_probable_kmer(text, k, profile_str)
 # %%
