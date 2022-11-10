@@ -1,4 +1,4 @@
 # %% ----------------------------------------
 import numpy as np
-import pattern_base
+from psp import kmer, utils
 # %% ----------------------------------------
